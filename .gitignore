@@ -5,11 +5,13 @@ build/
 dist/
 wheels/
 *.egg-info
+.DS_Store
 
 # Virtual environments
-.venv
+.venv/
 
 # Claude Code Files
 .claude/
 _plans/
 _specs/
+.devcontainer/
