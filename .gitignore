@@ -15,6 +15,7 @@ wheels/
 _plans/
 _specs/
 .devcontainer/
+AGENTS.md
 
 # Project-specific directories and files
 data/
