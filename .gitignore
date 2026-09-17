@@ -15,3 +15,6 @@ wheels/
 _plans/
 _specs/
 .devcontainer/
+
+# Project-specific directories and files
+data/
