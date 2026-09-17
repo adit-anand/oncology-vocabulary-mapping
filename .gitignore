@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Claude Code Files
+.claude/
+_plans/
+_specs/
