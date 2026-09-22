@@ -14,6 +14,11 @@ TRAIN_SPACY_DIR = REPO_ROOT / "data" / "annotations" / "train_spacy"
 TEST_SPACY_DIR = REPO_ROOT / "data" / "annotations" / "test_spacy"
 ANNOTATION_CONF = REPO_ROOT / "data" / "annotations" / "annotation.conf"
 
+# Entity labels to train/evaluate the spancat model on. Restricted to these five
+# because the others (Device, Visit, Person, Scope) don't have enough labeled
+# examples for the spancat suggester to learn a usable signal from.
+TARGET_LABELS = {"Condition", "Drug", "Observation", "Measurement", "Procedure"}
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,7 +72,7 @@ def build_doc(
     for fragments, label, entity_id in ann_entities:
         if label not in keep_labels:
             logger.info(
-                "%s: excluding entity %s (label %r not in !CONCEPTS)",
+                "%s: excluding entity %s (label %r not in keep_labels)",
                 source_name,
                 entity_id,
                 label,
@@ -150,6 +155,13 @@ def main() -> None:
     shutil.rmtree(TEST_DIR)
     os.mkdir(TRAIN_DIR)
     os.mkdir(TEST_DIR)
+    # Remove any previously converted .spacy files so stale per-doc files (e.g. from a
+    # run with a different label filter or train/test split) don't linger alongside
+    # the newly converted ones.
+    if TRAIN_SPACY_DIR.exists():
+        shutil.rmtree(TRAIN_SPACY_DIR)
+    if TEST_SPACY_DIR.exists():
+        shutil.rmtree(TEST_SPACY_DIR)
     # Get list of Chia annotation filenames
     file_list = os.listdir(ANNOTATIONS_DIR)
     # Get a list of the NCT IDs
@@ -179,7 +191,7 @@ def main() -> None:
             shutil.copy2(ANNOTATIONS_DIR / filename, TEST_DIR)
 
     nlp = spacy.load("en_core_web_sm")
-    keep_labels = load_ner_labels(ANNOTATION_CONF)
+    keep_labels = load_ner_labels(ANNOTATION_CONF) & TARGET_LABELS
 
     convert_split(TRAIN_DIR, TRAIN_SPACY_DIR, nlp, keep_labels)
     convert_split(TEST_DIR, TEST_SPACY_DIR, nlp, keep_labels)
