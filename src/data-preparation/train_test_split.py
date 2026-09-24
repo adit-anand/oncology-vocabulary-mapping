@@ -190,7 +190,7 @@ def main() -> None:
         for filename in trial_files:
             shutil.copy2(ANNOTATIONS_DIR / filename, TEST_DIR)
 
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_sci_scibert", exclude=["transformer", "tagger", "attribute_ruler", "lemmatizer", "parser", "ner"])
     keep_labels = load_ner_labels(ANNOTATION_CONF) & TARGET_LABELS
 
     convert_split(TRAIN_DIR, TRAIN_SPACY_DIR, nlp, keep_labels)

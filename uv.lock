@@ -2,6 +2,9 @@ version = 1
 revision = 3
 requires-python = ">=3.13"
 
+[manifest]
+overrides = [{ name = "spacy", specifier = ">=3.8.16,<4" }]
+
 [[package]]
 name = "annotated-doc"
 version = "0.0.5"
@@ -397,11 +400,19 @@ wheels = [
 ]
 
 [[package]]
-name = "en-core-web-sm"
-version = "3.8.0"
-source = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }
-wheels = [
-    { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl", hash = "sha256:1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85" },
+name = "en-core-sci-scibert"
+version = "0.5.4"
+source = { url = "https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_scibert-0.5.4.tar.gz" }
+dependencies = [
+    { name = "spacy" },
+    { name = "spacy-transformers" },
+]
+sdist = { hash = "sha256:be4afaa2710d63206fafa7864001acbfab1225800bbab577f32765435e29b7f2" }
+
+[package.metadata]
+requires-dist = [
+    { name = "spacy", specifier = ">=3.7.4,<3.8.0" },
+    { name = "spacy-transformers" },
 ]
 
 [[package]]
@@ -993,7 +1004,7 @@ name = "ohdsi-2026"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "en-core-web-sm" },
+    { name = "en-core-sci-scibert" },
     { name = "medspacy" },
     { name = "spacy" },
     { name = "spacy-transformers" },
@@ -1001,7 +1012,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "en-core-web-sm", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" },
+    { name = "en-core-sci-scibert", url = "https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_scibert-0.5.4.tar.gz" },
     { name = "medspacy", specifier = ">=1.3.1" },
     { name = "spacy", specifier = ">=3.8.16" },
     { name = "spacy-transformers", specifier = ">=1.4.0" },
