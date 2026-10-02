@@ -20,3 +20,4 @@ AGENTS.md
 
 # Project-specific directories and files
 data/
+.env

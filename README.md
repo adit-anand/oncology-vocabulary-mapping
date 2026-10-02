@@ -81,3 +81,32 @@ Run each step with `uv run`, from the repo root.
    ```
    uv run python src/model-training/predict_example.py
    ```
+
+## Fetching clinical trial data
+
+`src/data-preparation/fetch_clinical_trials.py` fetches real clinical trial eligibility
+criteria, independent of the Chia training corpus — e.g. as input for running the trained
+model against real trials.
+
+It searches ClinicalTrials.gov for interventional trials matching a given condition that
+are sponsored/affiliated with the National Cancer Institute (NCI), posted after
+2014-01-01, with status Active-not-recruiting or Completed. For each matching trial, it
+looks up the unstructured eligibility criteria via the NCI Clinical Trials Search (CTRP)
+API and splits them into atomic inclusion/exclusion criteria.
+
+1. Set `CTRP_API_KEY` in a `.env` file at the repo root to a valid NCI Clinical Trials
+   Search API key.
+
+2. Run it with a condition to search for:
+
+   ```
+   uv run python src/data-preparation/fetch_clinical_trials.py "breast cancer"
+   ```
+
+   Writes one row per criterion to
+   `data/external/<condition>_trials_eligibility.csv` (e.g.
+   `breast_cancer_trials_eligibility.csv`), with columns `nct_id`,
+   `study_first_posted_date`, `criterion_text`, and `criterion_type` (`inclusion`,
+   `exclusion`, or `both` when CTRP returns a trial's criteria as one undifferentiated
+   block of text with no detectable Inclusion/Exclusion headers). Trials with no
+   eligibility criteria available from the CTRP API are dropped.
