@@ -1,6 +1,6 @@
 # ohdsi-2026
 
-Trains a spaCy `spancat` model to recognize clinical entities (Condition, Drug,
+Trains a spaCy `spancat_singlelabel` model to recognize clinical entities (Condition, Drug,
 Observation, Measurement, Procedure) in clinical trial eligibility criteria,
 using the Chia corpus of brat-annotated eligibility criteria as training data.
 
@@ -56,7 +56,7 @@ Run each step with `uv run`, from the repo root.
    uv run python src/data-preparation/train_test_split.py
    ```
 
-2. **Train the model.** Trains a `spancat` pipeline (config at
+2. **Train the model.** Trains a `spancat_singlelabel` pipeline (config at
    `src/model-training/spancat_config.cfg`, fine-tuning the SciBERT transformer that
    backs `en_core_sci_scibert`) on `train_spacy/`, evaluating against `test_spacy/`
    as it goes. Writes
@@ -80,6 +80,14 @@ Run each step with `uv run`, from the repo root.
 
    ```
    uv run python src/model-training/predict_example.py
+   ```
+
+5. **Generate a train/test performance report.** Scores `data/model/model-best`
+   against both `train_spacy/` and `test_spacy/` (Accuracy, Precision, Recall, F1) and
+   writes `performance.txt` to `data/model/`:
+
+   ```
+   uv run python src/model-training/generate_performance_report.py
    ```
 
 ## Fetching clinical trial data

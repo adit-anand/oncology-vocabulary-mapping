@@ -9,9 +9,10 @@ from spacy.training import Corpus
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MODEL_DIR = REPO_ROOT / "data" / "model" / "model-best"
+TRAIN_SPACY_DIR = REPO_ROOT / "data" / "annotations" / "train_spacy"
 TEST_SPACY_DIR = REPO_ROOT / "data" / "annotations" / "test_spacy"
-OUTPUT_JSON = REPO_ROOT / "data" / "model" / "evaluation_report.json"
-OUTPUT_TXT = REPO_ROOT / "data" / "model" / "evaluation_report.txt"
+OUTPUT_JSON = REPO_ROOT / "data" / "model" / "performance_report.json"
+OUTPUT_TXT = REPO_ROOT / "data" / "model" / "performance.txt"
 
 SPANS_KEY = "sc"
 
@@ -65,42 +66,44 @@ def score_spans(examples: list) -> dict[str, Any]:
     }
 
 
+def evaluate_split(nlp, spacy_dir: Path) -> dict[str, Any]:
+    examples = list(Corpus(spacy_dir)(nlp))
+    docs = nlp.pipe(eg.predicted for eg in examples)
+    for eg, doc in zip(examples, docs):
+        eg.predicted = doc
+    return score_spans(examples)
+
+
 def main() -> None:
     logger.info("Loading model from %s", MODEL_DIR)
     nlp = spacy.load(MODEL_DIR)
 
-    logger.info("Loading test corpus from %s", TEST_SPACY_DIR)
-    examples = list(Corpus(TEST_SPACY_DIR)(nlp))
-    docs = nlp.pipe(eg.predicted for eg in examples)
-    for eg, doc in zip(examples, docs):
-        eg.predicted = doc
+    report: dict[str, Any] = {}
+    lines = [f"Train/test split performance for {MODEL_DIR.relative_to(REPO_ROOT)}", ""]
+    for name, spacy_dir in [("train", TRAIN_SPACY_DIR), ("test", TEST_SPACY_DIR)]:
+        logger.info("Evaluating %s split from %s", name, spacy_dir)
+        split_report = evaluate_split(nlp, spacy_dir)
+        report[name] = split_report
+        logger.info("%s: %s", name, split_report["overall"])
 
-    report = score_spans(examples)
+        lines.append(f"{name.capitalize()} ({spacy_dir.relative_to(REPO_ROOT)}):")
+        lines.append("  Overall:")
+        lines.append(f"    Accuracy:  {split_report['overall']['accuracy']:.4f}")
+        lines.append(f"    Precision: {split_report['overall']['precision']:.4f}")
+        lines.append(f"    Recall:    {split_report['overall']['recall']:.4f}")
+        lines.append(f"    F1:        {split_report['overall']['f1']:.4f}")
+        lines.append("  Per label:")
+        for label, scores in split_report["per_label"].items():
+            lines.append(
+                f"    {label:<12} accuracy={scores['accuracy']:.4f} "
+                f"precision={scores['precision']:.4f} recall={scores['recall']:.4f} "
+                f"f1={scores['f1']:.4f}"
+            )
+        lines.append("")
 
     OUTPUT_JSON.write_text(json.dumps(report, indent=2), encoding="utf-8")
-
-    lines = [
-        f"Evaluation of {MODEL_DIR.relative_to(REPO_ROOT)} "
-        f"against {TEST_SPACY_DIR.relative_to(REPO_ROOT)}",
-        "",
-        "Overall:",
-        f"  Accuracy:  {report['overall']['accuracy']:.4f}",
-        f"  Precision: {report['overall']['precision']:.4f}",
-        f"  Recall:    {report['overall']['recall']:.4f}",
-        f"  F1:        {report['overall']['f1']:.4f}",
-        "",
-        "Per label:",
-    ]
-    for label, scores in report["per_label"].items():
-        lines.append(
-            f"  {label:<12} accuracy={scores['accuracy']:.4f} "
-            f"precision={scores['precision']:.4f} recall={scores['recall']:.4f} "
-            f"f1={scores['f1']:.4f}"
-        )
-    OUTPUT_TXT.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
+    OUTPUT_TXT.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     logger.info("Wrote %s and %s", OUTPUT_JSON, OUTPUT_TXT)
-    logger.info("Overall: %s", report["overall"])
 
 
 if __name__ == "__main__":

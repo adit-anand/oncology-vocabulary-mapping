@@ -36,7 +36,7 @@ def main(config_path: Path, output_dir: Path, overrides: dict[str, Any]) -> None
         "paths.dev": str(TEST_SPACY_DIR),
         **overrides,
     }
-    logger.info("Training spancat model: config=%s output=%s overrides=%s", config_path, output_dir, train_overrides)
+    logger.info("Training spancat_singlelabel model: config=%s output=%s overrides=%s", config_path, output_dir, train_overrides)
     train(config_path, output_path=output_dir, overrides=train_overrides, use_gpu=-1)
 
     model_best_dir = output_dir / "model-best"
@@ -58,7 +58,7 @@ def main(config_path: Path, output_dir: Path, overrides: dict[str, Any]) -> None
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description="Train a spancat NER model on the Chia eligibility-criteria corpus.")
+    parser = argparse.ArgumentParser(description="Train a spancat_singlelabel NER model on the Chia eligibility-criteria corpus.")
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG, help="Path to the spaCy training config.")
     parser.add_argument(
         "--output",
